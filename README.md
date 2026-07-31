@@ -1,5 +1,7 @@
 # MSc-Health-Data-Science-Dissertation
 Title: Tracing the Return of Psoriatic Lesional Skin Toward a Non‑Lesional State Through Gene Expression and Transcription-Factor Activity
+This repository contains the R analysis code for the dissertation. It is a secondary analysis of the publicly available psoriasis RNA-seq dataset E-MTAB-14509 (Rider et al., 2026).
+
 ## Data availability
 **Primary dataset (E-MTAB-14509)** — RNA-seq expression and sample metadata are available from ArrayExpress under accession
 E-MTAB-14509:(https://www.ebi.ac.uk/biostudies/arrayexpress/studies/E-MTAB-14509).
@@ -19,16 +21,57 @@ Key packages:
 | readr | 2.1.5 | File reading |
 | formatR | 1.14 | Code formatting |
 
-All scripts read input files from absolute paths (e.g. the BlueBEAR `/rds/projects/...` locations used here). **These paths must be edited at the top of each script to point to wherever the corresponding data sit on your own system** before the scripts will run. Run the scripts in numerical order.
-
 ## Scripts
+Run in this order. Each script is self-contained (loads its own data); scripts 3 and 4 also re-derive the week-0/week-12 objects they need, so they do not depend on 1–2 having been run first in the same session.
 
-Run in order; each builds on outputs from the previous.
+- **`01_EDA.R`** — 	Exploratory data analysis, cohort summary, PASI trajectories, and unsupervised PCA (including PC1 loadings and inflammatome highlight)
+  
+- **`02_inflammation_score.R`** — Per-sample inflammatome score (mean log-normalised expression of the top-100 inflammatome genes) and its correlation with PASI
 
-- **`01_EDA.R`** — Loads and cleans the E-MTAB-14509 cohort. Removes whole-blood and week 1 samples, filters missing covariates, and characterises the dataset at patient and sample level (cohort tables, PASI distributions, PCA).
+- **`03_LASSO_ElasticNet.R`** — 	LASSO + Elastic Net classifiers on gene expression; week-12 application; gene-signature to inflammatome overlap.
 
-- **`02_inflammation_score.R`** — Computes a per-sample inflammation score from the inflammatome gene set and correlates it with clinical PASI scores (Pearson and Spearman).
+- **`04_CollecTRI_TF_activity.R`** — Transcription-factor activity inference (CollecTRI + decoupleR run_ulm); LASSO + EN on TF activity; week-12 application; TF ↔ gene-signature intersection
 
-- **`03_LASSO_ElasticNet.R`** — Trains penalised logistic-regression classifiers(LASSO and elastic net) to distinguish lesional from non-lesional skin at week 0, using gene expression as features. Includes cross-validated λ tuning, a 70/30 hold-out, ROC/AUC evaluation, and application of the frozen models to week 12 to assess transcriptomic convergence.
+2. Figure/table to code map
+Every numbered figure and table in the dissertation, and where it is produced.
 
-- **`04_CollecTRI_TF_activity.R`** — Infers transcription-factor activity from the expression data using CollecTRI regulons (via decoupleR), then repeats the classification and convergence analysis using TF activities as features. Relates the TF and gene signatures through shared regulator–target links.
+Thesis item	Produced by
+Table 3.1 — cohort demographics	01_EDA.R (table() / summary() blocks)
+Figure 3.1A — sample flow diagram	Drawn manually (not code-generated); counts come from 01_EDA.R
+Figure 3.1B — PASI Week 0 vs 12	01_EDA.R (pasi_plot)
+Figure 3.1C — inflammatome score vs PASI	02_inflammation_score.R
+Figure 3.2 — Pearson r = 0.37 / Spearman 0.40	02_inflammatome_score.R (cor.test)
+Figure 3.2A — scree plot	01_EDA.R
+Figure 3.2B — PCA, all samples	01_EDA.R
+Figure 3.2C/D — PCA, Week 0 / Week 12	01_EDA.R(pca_df0, pca_df12)
+Figure 3.2E/F — PC1 loadings + inflammatome	01_EDA.R (pc1_genes, loadings_pca.tsv)
+3.3.1 — PC1 ∩ inflammatome overlaps	01_EDA.R
+Table 3.2 — EN gene signature	03_LASSO_ElasticNet.R (en_df)
+Figure 3.3A/B — gene ROC (LASSO / EN)	03_LASSO_ElasticNet.R
+Figure 3.3C–E — GJB2 / KYNU / KLK13	03_LASSO_ElasticNet.R
+Figure 3.4.3 — signature ∩ inflammatome	03_LASSO_ElasticNet.R
+Tables 3.3 / 3.4 — TF signatures (LASSO / EN)	04_CollecTRI_TF_activity.R (lasso_df, en_df)
+Figure 3.4A/B — TF ROC (LASSO / EN)	04_CollecTRI_TF_activity.R
+Figure 3.4C–F — STAT4 / BACH1 / CEBPE / MSX1	04_CollecTRI_TF_activity.R
+Figure 3.5.2 — TF ∩ gene-signature (IL17A, PI3)	04_CollecTRI_TF_activity.R (links)
+Figure 3.5A/B — gene ROC at Week 12	03_LASSO_ElasticNet.R
+Figure 3.5C/D — TF ROC at Week 12	04_CollecTRI_TF_activity.R
+Figure 3.5E — paired probabilities (TF)	04_CollecTRI_TF_activity.R
+Figure 3.5F — paired probabilities (genes)	03_LASSO_ElasticNet.R
+3.6.2 — Wilcoxon p (genes / TF)	03_LASSO_ElasticNet.R / 04_CollecTRI_TF_activity.R
+
+3. Input data
+Raw and patient-level data are not redistributed. The scripts expect the following files.
+File	Description	Source
+Skin_norm_counts_d.txt	Normalised, log-CPM expression matrix (genes × samples; ~15,735 genes)	E-MTAB-14509, ArrayExpress
+E-MTAB-14509.sdrf.txt	Sample and clinical metadata	E-MTAB-14509, ArrayExpress
+Final_Annotation_List_BioMart.tsv	Ensembl ID - HGNC symbol mapping	Generated via biomaRt
+04_rank_agg_list.tsv	Inflammatome rank-aggregated gene list	Cort et al. (2026) supplementary / repository
+collectri_regulons.csv	CollecTRI signed regulon network	decoupleR / CollecTRI
+The primary dataset is available from ArrayExpress under accession E-MTAB-14509.
+I downloaded and added the E-MATB-14509 dataset and collecTRI to github.
+
+4. Reproducing the analysis
+Environment. Package versions are locked with renv. 
+Analyses were run in R 4.5.0 on the University of Birmingham BlueBEAR HPC service.
+Paths. File paths in the scripts are currently absolute to the BlueBEAR project directory (/rds/projects/b/bravol-inf-multi/Esther/...). To run elsewhere, set the base data directory once at the top of each script
