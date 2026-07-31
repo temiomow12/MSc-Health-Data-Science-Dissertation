@@ -2,8 +2,8 @@
 Title: Tracing the Return of Psoriatic Lesional Skin Toward a Non‑Lesional State Through Gene Expression and Transcription-Factor Activity
 ## Data availability
 **Primary dataset (E-MTAB-14509)** — RNA-seq expression and sample metadata are available from ArrayExpress under accession
-[E-MTAB-14509]:(https://www.ebi.ac.uk/biostudies/arrayexpress/studies/E-MTAB-14509).
-**Inflammatome gene set** — the ranked inflammation signature is from [Cort et al (2026) / [repository](https://github.com/isadpc/Inflammatome/tree/main/data/data/04_rank_agg_list.tsv)]; the file used here was stored locally and is not redistributed in this repository.
+E-MTAB-14509:(https://www.ebi.ac.uk/biostudies/arrayexpress/studies/E-MTAB-14509).
+**Inflammatome gene set** — the ranked inflammation signature is from Cort et al (2026)(https://github.com/isadpc/Inflammatome/tree/main/data/data/04_rank_agg_list.tsv); the file used here was stored locally and is not redistributed in this repository.
 
 Analyses were run on the University of Birmingham BlueBEAR HPC service, in R 4.5.0. 
 Key packages:
